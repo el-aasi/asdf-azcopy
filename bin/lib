@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+
+get_platform() {
+  local os arch
+  case "$(uname -s | tr '[:upper:]' '[:lower:]')" in
+    darwin) os="darwin" ;;
+    linux) os="linux" ;;
+    *) echo "Unsupported OS" >&2; return 1 ;;
+  esac
+
+  case "$(uname -m)" in
+    x86_64) arch="amd64" ;;
+    aarch64|arm64) arch="arm64" ;;
+    *) echo "Unsupported Architecture" >&2; return 1 ;;
+  esac
+  echo "${os}_${arch}"
+}
+
+get_binary_name() {
+  echo "azcopy"
+}
+
+get_source_binary_path() {
+  echo "${ASDF_DOWNLOAD_PATH}/$(get_binary_name)"
+}
+
+get_install_bin_path() {
+  echo "${ASDF_INSTALL_PATH}/bin/$(get_binary_name)"
+}
+
+get_release_version() {
+  echo "$ASDF_INSTALL_VERSION"
+}
+
+get_repo_url() {
+  echo "https://api.github.com/repos/Azure/azure-storage-azcopy/releases/tags/v$(get_release_version)"
+}
+
+get_archive_name() {
+  echo "archive.tar.gz"
+}
+
+get_archive_path() {
+  echo "${ASDF_DOWNLOAD_PATH}/$(get_archive_name)"
+}
+
+# stolen from https://github.com/rbenv/ruby-build/pull/631/files#diff-fdcfb8a18714b33b07529b7d02b54f1dR942
+sort_versions() {
+  sed 'h; s/[+-]/./g; s/.p\([[:digit:]]\)/.z\1/; s/$/.z/; G; s/\n/ /' |
+    LC_ALL=C sort -t. -k 1,1 -k 2,2n -k 3,3n -k 4,4n -k 5,5n | awk '{print $2}'
+}

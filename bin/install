@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+: "${ASDF_INSTALL_PATH:?"Missing ASDF_INSTALL_PATH"}"
+: "${ASDF_DOWNLOAD_PATH:?"Missing ASDF_DOWNLOAD_PATH"}"
+: "${ASDF_INSTALL_VERSION:?"Missing ASDF_INSTALL_VERSION"}"
+
+. "$(dirname "$0")/lib"
+
+install() {
+  if [ ! -f "$(get_source_binary_path)" ]; then
+    echo "Binary not found in download path. Triggering download..."
+    . "$(dirname "$0")/download" || {
+      echo "Error: Automated download of azcopy $(get_release_version) failed" 1>&2
+      exit 1
+    }
+  fi
+
+  local install_bin_dir
+  install_bin_dir="$(dirname "$(get_install_bin_path)")"
+  mkdir -p "$install_bin_dir"
+
+  cp "$(get_source_binary_path)" "$(get_install_bin_path)"
+  chmod +x "$(get_install_bin_path)"
+
+  rm -rf "$ASDF_DOWNLOAD_PATH"
+
+  if [ -x "$(get_install_bin_path)" ]; then
+    echo "azcopy $(get_release_version) has been successfully installed to $ASDF_INSTALL_PATH"
+    exit 0
+  else
+    echo "An error occurred: $(get_binary_name) is not executable at $(get_install_bin_path)" 1>&2
+    rm -rf "$ASDF_INSTALL_PATH"
+    exit 1
+  fi
+}
+
+install

@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+source "$(dirname "$0")/lib"
+
+list_all() {
+    releases_url="https://api.github.com/repos/Azure/azure-storage-azcopy/releases"
+
+    curl -s "$releases_url" | 
+        grep -oP '"tag_name": "\K[^"]+' | 
+        sed 's/^v//' | 
+        sort_versions | 
+        paste -sd ' ' -
+}
+
+list_all

@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+: "${ASDF_INSTALL_VERSION:?"Missing ASDF_INSTALL_VERSION"}"
+: "${ASDF_DOWNLOAD_PATH:?"Missing ASDF_DOWNLOAD_PATH"}"
+
+source "$(dirname "$0")/lib"
+
+download() {
+  local platform
+  platform=$(get_platform)
+
+  echo "Downloading azcopy v$(get_release_version) for ${platform}..."
+
+  curl -fsSL "$(get_repo_url)" |
+    grep -oP '"browser_download_url": "\K[^"]+' |
+    grep "$platform" |
+    xargs -n1 curl -fsSL -o "$(get_archive_path)"
+
+  tar -xzf "$(get_archive_path)" -C "$ASDF_DOWNLOAD_PATH" --strip-components=1
+
+  rm "$(get_archive_path)"
+}
+
+download
